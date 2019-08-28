@@ -79,9 +79,9 @@ def send_request(method, chat_id, params = {}, file_path = False):
 	params["reply_markup"] = array_to_keyboard(keyboard)
 	if file_path != False:
 		file = dict(photo=open(file_path, 'rb'))
-		response = requests.post(url, params=params, files=file)
+		response = requests.post(url, params=params, files=file, verify=False)
 	else:
-	    response = requests.post(url, params=params)
+	    response = requests.post(url, params=params, verify=False)
 
 	return response
 

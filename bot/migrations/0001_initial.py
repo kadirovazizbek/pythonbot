@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('text', models.TextField(default='')),
                 ('previous_command', models.CharField(max_length=255)),
                 ('next_command', models.CharField(max_length=255)),
-                ('chat_id', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='app.Chat')),
+                ('chat_id', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='bot.Chat')),
             ],
         ),
     ]
