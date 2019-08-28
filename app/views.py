@@ -7,11 +7,12 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from .models import Message, Chat
 
 # Create your views here.
+chat = Chat()
 @csrf_exempt
 def index(request):
 	req = json.loads(request.body)
 	message_text = req['message']['text']
-	chat = Chat()
+	
 	chat.id = req['message']['from']['id']
 	chat.username = req['message']['from']['username']
 	chat.first_name = req['message']['from']['first_name']
@@ -36,28 +37,46 @@ def index(request):
 
 	response = sendMessage(req['message']['chat']['id'], response_str)
 	#response = sendPhoto(req['message']['chat']['id'], 'photo.jpg')
-	return HttpResponse(response)
+	return HttpResponse("")
 
 def sendMessage(chat_id, text):
 	params = {'text' : text}
 	response = send_request('sendMessage', chat_id, params)
+	response_obj = response.json()
+	print(response_obj)
+	if response_obj['ok'] == True:
+		msg = Message()
+		msg.message_id = response_obj['result']['message_id']
+		msg.text = text
+		msg.my_in = 0
+		msg.chat = chat
+		msg.save()
 	return response
 
 def editLastMessageText(chat_id, new_text):
 	lastMessage = Message.objects.filter(my_in = 1).order_by('-id')[:1]
-	params = {'text' : new_text}
-	response = send_request('sendMessage', chat_id, params)
+	message_id = lastMessage.message_id
+	params = {'text' : new_text, 'message_id' : message_id}
+	response = send_request('editMessageText', chat_id, params = params)
 	return response
 
 def sendPhoto(chat_id, photo_path):
-	response = send_request('sendPhoto', chat_id, file_path = photo_path)
+	response = send_request(method = 'sendPhoto', chat_id = chat_id, file_path = photo_path)
 	return response
 
 def send_request(method, chat_id, params = {}, file_path = False):
 	url = "https://api.telegram.org/bot" + settings.BOT_API_KEY + '/' + method
-	print(url)
+	#print(url)
 	params["chat_id"] = chat_id
-	params["reply_markup"] = array_to_keyboard()
+	keyboard = [
+		[
+			{'text' : 'hello', 'callback_data' : 'abc'}, {'text': 'second', 'callback_data' : 'abc'},
+		],
+		[
+			{'text' : 'test', 'callback_data' : 'abc'}, {'text': 'jdkfjld', 'callback_data' : 'abc'}
+		]
+	]
+	params["reply_markup"] = array_to_keyboard(keyboard)
 	if file_path != False:
 		file = dict(photo=open(file_path, 'rb'))
 		response = requests.post(url, params=params, files=file)
@@ -66,14 +85,9 @@ def send_request(method, chat_id, params = {}, file_path = False):
 
 	return response
 
-def array_to_keyboard():
+def array_to_keyboard(buttons):
+	kbd = []
 	kbd = json.dumps({
-		'inline_keyboard' : [
-			[
-				{
-					'text' : 'text', 'callback_data' : 'testing'
-				}
-			]
-		]
+		'inline_keyboard' : buttons
 	})
 	return kbd
