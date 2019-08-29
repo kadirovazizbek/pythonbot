@@ -1,2 +1,3 @@
 __pycache__/
 *.py[cod]
+app/settings_local.py

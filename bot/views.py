@@ -43,7 +43,7 @@ def sendMessage(chat_id, text):
 	params = {'text' : text}
 	response = send_request('sendMessage', chat_id, params)
 	response_obj = response.json()
-	print(response_obj)
+	#print(response_obj)
 	if response_obj['ok'] == True:
 		msg = Message()
 		msg.message_id = response_obj['result']['message_id']
